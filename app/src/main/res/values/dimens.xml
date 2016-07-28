@@ -1,0 +1,12 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- 项目详情界面上面4个textview的高度 -->
+    <dimen name="d1">50dp</dimen>
+    <dimen name="textSize_8sp">8sp</dimen>
+    <dimen name="textSize_10sp">10sp</dimen>
+    <dimen name="top_height">45dp</dimen>
+
+</resources>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.cqt.wealth.MainActivity">
+
+    <FrameLayout
+        android:id="@+id/flComtent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#ccc"
+        />
+    <RadioGroup
+        android:id="@+id/rg"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:checkedButton="@+id/rbFind"
+        android:orientation="horizontal"
+        >
+
+        <RadioButton
+            android:id="@+id/rbFind"
+            style="@style/mainRg_style"
+            android:drawableTop="@drawable/seletor_main_rb_bg_find"
+            android:text="发现"/>
+
+        <RadioButton
+            android:id="@+id/rbToutiao"
+            style="@style/mainRg_style"
+            android:drawableTop="@drawable/seletor_main_rb_bg_toutiao"
+            android:text="财富头条"/>
+
+        <RadioButton
+            android:id="@+id/rbMe"
+            style="@style/mainRg_style"
+            android:drawableTop="@drawable/seletor_main_rb_bg_me"
+            android:text="我"/>
+    </RadioGroup>
+
+</LinearLayout>

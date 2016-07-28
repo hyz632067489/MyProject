@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--主界面底部按钮未选中字体颜色-->
+    <color name="mainTextHuise2">#606060</color>
+
+    <!--主题色-->
+    <color name="mainColor">#0094de</color>
+    <!--主题相似的色-->
+    <color name="mainColor2">#ff2fbaff</color>
+
+</resources>
