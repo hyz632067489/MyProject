@@ -20,9 +20,13 @@ public class App extends Application{
 
         getScreenInfo();
         getAppInfo();
-        getChannelName();
+//        getChannelName();
     }
 
+
+    /**
+     * 获取渠道名
+     */
     private void getChannelName() {
         try {
             ApplicationInfo info = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
@@ -32,6 +36,7 @@ public class App extends Application{
         }
     }
 
+    //获取app信息
     private void getAppInfo() {
         AppInfo.cachePath = getCacheDir().getPath();
 
