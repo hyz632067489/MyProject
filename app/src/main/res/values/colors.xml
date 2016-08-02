@@ -9,4 +9,8 @@
     <!--主题相似的色-->
     <color name="mainColor2">#ff2fbaff</color>
 
+    <!--白色-->
+    <color name="white">#ffffff</color>
+
+
 </resources>
