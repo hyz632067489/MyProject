@@ -11,6 +11,12 @@
 
     <!--白色-->
     <color name="white">#ffffff</color>
+    <!--黑色-->
+    <color name="black">#000000</color>
+    <!--灰色-->
+    <color name="grey">#f4f4f4</color>
 
+    <color name="grey_dark_press">#969696</color>
+    <color name="black_login">#727171</color>
 
 </resources>

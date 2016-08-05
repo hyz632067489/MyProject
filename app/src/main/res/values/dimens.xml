@@ -9,4 +9,6 @@
     <dimen name="textSize_10sp">10sp</dimen>
     <dimen name="top_height">45dp</dimen>
 
+    <dimen name="app_title_size">18sp</dimen>
+    <dimen name="register_login_hight">50dp</dimen>
 </resources>

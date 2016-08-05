@@ -9,21 +9,47 @@ import com.hyz.myproject.constant.AppConstant;
 import com.hyz.myproject.constant.AppInfo;
 import com.hyz.myproject.constant.Common;
 
+import okhttplib.CacheLevel;
+import okhttplib.CacheType;
+import okhttplib.OkHttpUtil;
+
 /**
  * Created by ${hyz} on 2016/7/28.
  */
 public class App extends Application{
 
+    public static App myApp;
+
+    public static  App getApplication(){
+        return myApp;
+    }
     @Override
     public void onCreate() {
         super.onCreate();
 
+        myApp = this;
+
         getScreenInfo();
         getAppInfo();
 //        getChannelName();
+
+        OkHttpUtil.init(this)
+                .setConnectTimeout(30)//超时时间设置
+                .setMaxCacheSize(10 * 1024 * 1024)//设置缓存空间大小
+                .setCacheLevel(CacheLevel.FIRST_LEVEL)//缓存等级
+                .setCacheType(CacheType.NETWORK_THEN_CACHE)//缓存类型
+                .setShowHttpLog(true)//显示请求日志
+                .setShowLifecycleLog(true)
+                .setRetryOnConnectionFailure(true)
+                .build();
+
+
     }
 
-
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+    }
     /**
      * 获取渠道名
      */
