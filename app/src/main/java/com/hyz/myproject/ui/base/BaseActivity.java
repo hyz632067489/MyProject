@@ -13,8 +13,6 @@ import com.hyz.myproject.ActivityManager;
 import com.hyz.myproject.R;
 import com.hyz.myproject.dialog.LoadingDialog;
 
-import butterknife.ButterKnife;
-
 /**
  * Created by ${hyz} on 2016/7/28.
  */
@@ -29,7 +27,7 @@ public class BaseActivity extends AppCompatActivity {
         ActivityManager.getActivityManager().pushActivity(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
 
-        ButterKnife.bind(this);
+//        ButterKnife.bind(this);
 
         mCurrentActivity = this;
     }

@@ -53,11 +53,12 @@ public class OkHttpUtil {
      * 请求时间戳：区别每次请求标识
      */
     private long timeStamp;
+
     /**
      * 请求方法
      */
     private enum Method {
-        GET,POST
+        GET, POST
     }
 
     /**
@@ -67,112 +68,120 @@ public class OkHttpUtil {
 
     /**
      * 初始化：请在Application中调用
+     *
      * @param context 上下文
      */
-    public static Builder init(Application context){
+    public static Builder init(Application context) {
         application = context;
         application.registerActivityLifecycleCallbacks(new BaseActivityLifecycleCallbacks());
         return BuilderGlobal();
     }
 
-    public static OkHttpUtil getDefault(){
+    public static OkHttpUtil getDefault() {
         return new Builder(false).build();
     }
 
     /**
      * 获取默认请求配置
+     *
      * @param object 请求标识
      * @return OkHttpUtil
      */
-    public static OkHttpUtil getDefault(Object object){
+    public static OkHttpUtil getDefault(Object object) {
         return new Builder(false).build(object);
     }
 
     /**
      * 同步Post请求
+     *
      * @param info 请求信息体
      * @return HttpInfo
      */
-    public HttpInfo doPostSync(HttpInfo info){
+    public HttpInfo doPostSync(HttpInfo info) {
         doRequestSync(info, Method.POST);
         return info;
     }
 
     /**
      * 同步Get请求
+     *
      * @param info 请求信息体
      * @return HttpInfo
      */
-    public HttpInfo doGetSync(HttpInfo info){
+    public HttpInfo doGetSync(HttpInfo info) {
         doRequestSync(info, Method.GET);
         return info;
     }
 
     /**
      * 异步Post请求
-     * @param info 请求信息体
+     *
+     * @param info     请求信息体
      * @param callback 回调接口
      */
-    public void doPostAsync(HttpInfo info, CallbackOk callback){
+    public void doPostAsync(HttpInfo info, CallbackOk callback) {
         doRequestAsync(info, Method.POST, callback);
     }
 
     /**
      * 异步Get请求
-     * @param info 请求信息体
+     *
+     * @param info     请求信息体
      * @param callback 回调接口
      */
-    public void doGetAsync(HttpInfo info, CallbackOk callback){
+    public void doGetAsync(HttpInfo info, CallbackOk callback) {
         doRequestAsync(info, Method.GET, callback);
     }
 
     /**
      * 同步请求
-     * @param info 请求信息体
+     *
+     * @param info   请求信息体
      * @param method 请求方法
      * @return HttpInfo
      */
-    private HttpInfo doRequestSync(HttpInfo info, Method method){
+    private HttpInfo doRequestSync(HttpInfo info, Method method) {
         Call call = null;
         try {
             String url = info.getUrl();
-            if(TextUtils.isEmpty(url)){
-                return retInfo(info,info.CheckURL);
+            if (TextUtils.isEmpty(url)) {
+                return retInfo(info, info.CheckURL);
             }
-            call = httpClient.newCall(fetchRequest(info,method));
-            BaseActivityLifecycleCallbacks.putCall(tag,info,call);
+            call = httpClient.newCall(fetchRequest(info, method));
+            BaseActivityLifecycleCallbacks.putCall(tag, info, call);
             Response res = call.execute();
             return dealResponse(info, res, call);
-        } catch (IllegalArgumentException e){
-            return retInfo(info,info.ProtocolException);
-        } catch (SocketTimeoutException e){
-            if(null != e.getMessage()){
-                if(e.getMessage().contains("failed to connect to"))
-                    return retInfo(info,info.ConnectionTimeOut);
-                if(e.getMessage().equals("timeout"))
-                    return retInfo(info,info.WriteAndReadTimeOut);
+        } catch (IllegalArgumentException e) {
+            return retInfo(info, info.ProtocolException);
+        } catch (SocketTimeoutException e) {
+            if (null != e.getMessage()) {
+                if (e.getMessage().contains("failed to connect to"))
+                    return retInfo(info, info.ConnectionTimeOut);
+                if (e.getMessage().equals("timeout"))
+                    return retInfo(info, info.WriteAndReadTimeOut);
             }
-            return retInfo(info,info.WriteAndReadTimeOut);
+            return retInfo(info, info.WriteAndReadTimeOut);
         } catch (UnknownHostException e) {
-            return retInfo(info,info.CheckNet);
+            return retInfo(info, info.CheckNet);
         } catch (Exception e) {
-            return retInfo(info,info.NoResult);
-        }finally {
-            BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
+            return retInfo(info, info.NoResult);
+        } finally {
+            BaseActivityLifecycleCallbacks.cancelCall(tag, info, call);
         }
     }
 
     /**
      * 异步请求
-     * @param info 请求信息体
-     * @param method 请求方法
+     *
+     * @param info     请求信息体
+     * @param method   请求方法
      * @param callback 回调接口
      */
-    private void doRequestAsync(final HttpInfo info, Method method, final CallbackOk callback){
-        if(null == callback)
+    private void doRequestAsync(final HttpInfo info, Method method, final CallbackOk callback) {
+        if (null == callback)
             throw new NullPointerException("CallbackOk is null that not allowed");
-        Call call = httpClient.newCall(fetchRequest(info,method));
-        BaseActivityLifecycleCallbacks.putCall(tag,info,call);
+        Call call = httpClient.newCall(fetchRequest(info, method));
+        BaseActivityLifecycleCallbacks.putCall(tag, info, call);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -182,8 +191,8 @@ public class OkHttpUtil {
             @Override
             public void onResponse(Call call, Response res) throws IOException {
                 //主线程回调
-                handler.sendMessage(new CallbackMessage(WHAT_CALLBACK,callback,dealResponse(info,res,call)).build());
-                BaseActivityLifecycleCallbacks.cancelCall(tag,info,call);
+                handler.sendMessage(new CallbackMessage(WHAT_CALLBACK, callback, dealResponse(info, res, call)).build());
+                BaseActivityLifecycleCallbacks.cancelCall(tag, info, call);
             }
         });
     }
@@ -191,16 +200,16 @@ public class OkHttpUtil {
     /**
      * 主线程业务调度
      */
-    private static Handler handler = new Handler(Looper.getMainLooper()){
+    private static Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             final int what = msg.what;
-            switch (what){
+            switch (what) {
                 case WHAT_CALLBACK:
                     try {
                         CallbackMessage callMsg = (CallbackMessage) msg.obj;
                         callMsg.callback.onResponse(callMsg.info);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     break;
@@ -208,43 +217,43 @@ public class OkHttpUtil {
         }
     };
 
-    private HttpInfo dealResponse(HttpInfo info, Response res, Call call){
+    private HttpInfo dealResponse(HttpInfo info, Response res, Call call) {
         try {
-            if(null != res){
-                if(res.isSuccessful() && null != res.body()){
-                    return retInfo(info,info.SUCCESS,res.body().string());
-                }else{
-                    showLog("HttpStatus: "+res.code());
-                    if(res.code() == 404)//请求页面路径错误
-                        return retInfo(info,info.CheckURL);
-                    if(res.code() == 500)//服务器内部错误
-                        return retInfo(info,info.NoResult);
-                    if(res.code() == 502)//错误网关
-                        return retInfo(info,info.CheckNet);
-                    if(res.code() == 504)//网关超时
-                        return retInfo(info,info.CheckNet);
+            if (null != res) {
+                if (res.isSuccessful() && null != res.body()) {
+                    return retInfo(info, info.SUCCESS, res.body().string());
+                } else {
+                    showLog("HttpStatus: " + res.code());
+                    if (res.code() == 404)//请求页面路径错误
+                        return retInfo(info, info.CheckURL);
+                    if (res.code() == 500)//服务器内部错误
+                        return retInfo(info, info.NoResult);
+                    if (res.code() == 502)//错误网关
+                        return retInfo(info, info.CheckNet);
+                    if (res.code() == 504)//网关超时
+                        return retInfo(info, info.CheckNet);
                 }
             }
-            return retInfo(info,info.CheckURL);
+            return retInfo(info, info.CheckURL);
         } catch (Exception e) {
             e.printStackTrace();
-            return retInfo(info,info.NoResult);
+            return retInfo(info, info.NoResult);
         } finally {
-            if(null != res)
+            if (null != res)
                 res.close();
         }
     }
 
-    private Request fetchRequest(HttpInfo info, Method method){
+    private Request fetchRequest(HttpInfo info, Method method) {
         Request request;
-        if(method == Method.POST){
+        if (method == Method.POST) {
             FormBody.Builder builder = new FormBody.Builder();
-            if(null != info.getParams() && !info.getParams().isEmpty()){
+            if (null != info.getParams() && !info.getParams().isEmpty()) {
                 StringBuilder log = new StringBuilder("PostParams: ");
                 String logInfo;
                 for (String key : info.getParams().keySet()) {
                     builder.add(key, info.getParams().get(key));
-                    logInfo = key+" ="+info.getParams().get(key)+", ";
+                    logInfo = key + " =" + info.getParams().get(key) + ", ";
                     log.append(logInfo);
                 }
                 showLog(log.toString());
@@ -253,32 +262,43 @@ public class OkHttpUtil {
                     .url(info.getUrl())
                     .post(builder.build())
                     .build();
-        }else{
-            StringBuilder params = new StringBuilder();
-            params.append(info.getUrl());
-            if(null != info.getParams() && !info.getParams().isEmpty()){
-                String logInfo;
+        } else {
+//            StringBuilder params = new StringBuilder();
+            String params ;
+            params = info.getUrl();
+//            params.append(info.getUrl());
+            if (null != info.getParams() && !info.getParams().isEmpty()) {
+                String logInfo = null;
                 for (String name : info.getParams().keySet()) {
-                    logInfo = "&" + name + "=" + info.getParams().get(name);
-                    params.append(logInfo);
+                    logInfo = name + "=" + info.getParams().get(name);
+
+//                    logInfo = "," + name + ":" + info.getParams().get(name);
+
                 }
+                params = params + '?' + logInfo ;
+//                params.append("requestValue="+jsonObject.toString());
             }
             request = new Request.Builder()
-                    .url(params.toString())
+                    .url(params)
                     .get()
                     .build();
         }
         return request;
     }
 
-    private HttpInfo retInfo(HttpInfo info, int code){
-        retInfo(info,code,null);
+    private HttpInfo retInfo(HttpInfo info, int code) {
+        retInfo(info, code, null);
         return info;
     }
 
-    private HttpInfo retInfo(HttpInfo info, int code, String resDetail){
-        info.packInfo(code,resDetail);
-        showLog("Response: "+info.getRetDetail());
+//        private HttpInfo retInfo(HttpInfo info, int code, Class<T>  resDetail){
+//        info.packInfo(code,resDetail);
+//        showLog("Response: "+info.getRetDetail( ));
+//        return info;
+//    }
+    private HttpInfo retInfo(HttpInfo info, int code, String resDetail) {
+        info.packInfo(code, resDetail);
+        showLog("Response: " + info.getRetDetail());
         return info;
     }
 
@@ -302,7 +322,7 @@ public class OkHttpUtil {
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
-            switch (cacheType){
+            switch (cacheType) {
                 case CacheType.FORCE_CACHE:
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     break;
@@ -310,14 +330,14 @@ public class OkHttpUtil {
                     request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     break;
                 case CacheType.NETWORK_THEN_CACHE:
-                    if(!isNetworkAvailable(application)){
+                    if (!isNetworkAvailable(application)) {
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
-                    }else {
+                    } else {
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build();
                     }
                     break;
                 case CacheType.CACHE_THEN_NETWORK:
-                    if(!isNetworkAvailable(application)){
+                    if (!isNetworkAvailable(application)) {
                         request = request.newBuilder().cacheControl(CacheControl.FORCE_CACHE).build();
                     }
                     break;
@@ -343,17 +363,33 @@ public class OkHttpUtil {
         @Override
         public Response intercept(Chain chain) throws IOException {
             long startTime = System.currentTimeMillis();
-            showLog(String.format("%s-URL: %s %n",chain.request().method(),
+            showLog(String.format("%s-URL: %s %n", chain.request().method(),
                     chain.request().url()));
             Response res = chain.proceed(chain.request());
             long endTime = System.currentTimeMillis();
-            showLog(String.format("CostTime: %.1fs", (endTime-startTime) / 1000.0));
+            showLog(String.format("CostTime: %.1fs", (endTime - startTime) / 1000.0));
             return res;
         }
     };
 
     /**
-     *主机名验证
+     * header
+     */
+    private Interceptor SET_HEADER = new Interceptor() {
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+
+            Request request = chain.request()
+                    .newBuilder()
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .build();
+
+            return chain.proceed(request);
+        }
+    };
+
+    /**
+     * 主机名验证
      */
     private final HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
@@ -366,14 +402,15 @@ public class OkHttpUtil {
                 .connectTimeout(builder.connectTimeout, TimeUnit.SECONDS)
                 .readTimeout(builder.readTimeout, TimeUnit.SECONDS)
                 .writeTimeout(builder.writeTimeout, TimeUnit.SECONDS)
-                .cache(new Cache(builder.cachedDir,builder.maxCacheSize))
+                .cache(new Cache(builder.cachedDir, builder.maxCacheSize))
                 .retryOnConnectionFailure(builder.retryOnConnectionFailure)
                 .addInterceptor(LOG_INTERCEPTOR)
                 .addInterceptor(CACHE_CONTROL_INTERCEPTOR)
+                .addInterceptor(SET_HEADER)
                 .addNetworkInterceptor(CACHE_CONTROL_NETWORK_INTERCEPTOR);
-        if(null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
+        if (null != builder.networkInterceptors && !builder.networkInterceptors.isEmpty())
             clientBuilder.networkInterceptors().addAll(builder.networkInterceptors);
-        if(null != builder.interceptors && !builder.interceptors.isEmpty())
+        if (null != builder.interceptors && !builder.interceptors.isEmpty())
             clientBuilder.interceptors().addAll(builder.interceptors);
         setSslSocketFactory(clientBuilder);
         httpClient = clientBuilder.build();
@@ -384,8 +421,8 @@ public class OkHttpUtil {
         this.cacheSurvivalTime = builder.cacheSurvivalTime;
         this.tag = builder.tag;
         this.showHttpLog = builder.showHttpLog;
-        if(this.cacheSurvivalTime == 0){
-            switch (this.cacheLevel){
+        if (this.cacheSurvivalTime == 0) {
+            switch (this.cacheLevel) {
                 case CacheLevel.FIRST_LEVEL:
                     this.cacheSurvivalTime = 0;
                     break;
@@ -400,25 +437,28 @@ public class OkHttpUtil {
                     break;
             }
         }
-        if(this.cacheSurvivalTime > 0)
+        if (this.cacheSurvivalTime > 0)
             cacheType = CacheType.CACHE_THEN_NETWORK;
         BaseActivityLifecycleCallbacks.setShowLifecycleLog(builder.showLifecycleLog);
     }
 
     /**
      * 设置HTTPS认证
+     *
      * @param clientBuilder
      */
-    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder){
+    private void setSslSocketFactory(OkHttpClient.Builder clientBuilder) {
         clientBuilder.hostnameVerifier(DO_NOT_VERIFY);
         try {
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, new TrustManager[]{new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[] {};
+                    return new X509Certificate[]{};
                 }
+
                 public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 }
+
                 public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 }
             }}, new SecureRandom());
@@ -461,25 +501,25 @@ public class OkHttpUtil {
             isGlobalConfig = isGlobal;
             //系统默认配置
             initDefaultConfig();
-            if(!isGlobal){
-                if(null != builderGlobal){
+            if (!isGlobal) {
+                if (null != builderGlobal) {
                     //全局自定义配置
                     initGlobalConfig(builderGlobal);
                 }
             }
         }
 
-        public OkHttpUtil build(){
+        public OkHttpUtil build() {
             return build(null);
         }
 
         public OkHttpUtil build(Object object) {
-            if(isGlobalConfig){
-                if(null == builderGlobal){
+            if (isGlobalConfig) {
+                if (null == builderGlobal) {
                     builderGlobal = this;
                 }
             }
-            if(null != object)
+            if (null != object)
                 setTag(object);
             return new OkHttpUtil(this);
         }
@@ -487,7 +527,7 @@ public class OkHttpUtil {
         /**
          * 系统默认配置
          */
-        private void initDefaultConfig(){
+        private void initDefaultConfig() {
             setMaxCacheSize(10 * 1024 * 1024);
             setCachedDir(application.getExternalCacheDir());
             setConnectTimeout(30);
@@ -505,9 +545,10 @@ public class OkHttpUtil {
 
         /**
          * 全局自定义配置
+         *
          * @param builder builder
          */
-        private void initGlobalConfig(Builder builder){
+        private void initGlobalConfig(Builder builder) {
             setMaxCacheSize(builder.maxCacheSize);
             setCachedDir(builder.cachedDir);
             setConnectTimeout(builder.connectTimeout);
@@ -529,27 +570,27 @@ public class OkHttpUtil {
         }
 
         public Builder setCachedDir(File cachedDir) {
-            if(null != cachedDir)
+            if (null != cachedDir)
                 this.cachedDir = cachedDir;
             return this;
         }
 
         public Builder setConnectTimeout(int connectTimeout) {
-            if(connectTimeout <= 0)
+            if (connectTimeout <= 0)
                 throw new IllegalArgumentException("connectTimeout must be > 0");
             this.connectTimeout = connectTimeout;
             return this;
         }
 
         public Builder setReadTimeout(int readTimeout) {
-            if(readTimeout <= 0)
+            if (readTimeout <= 0)
                 throw new IllegalArgumentException("readTimeout must be > 0");
             this.readTimeout = readTimeout;
             return this;
         }
 
         public Builder setWriteTimeout(int writeTimeout) {
-            if(writeTimeout <= 0)
+            if (writeTimeout <= 0)
                 throw new IllegalArgumentException("writeTimeout must be > 0");
             this.writeTimeout = writeTimeout;
             return this;
@@ -561,19 +602,19 @@ public class OkHttpUtil {
         }
 
         public Builder setNetworkInterceptors(List<Interceptor> networkInterceptors) {
-            if(null != networkInterceptors)
+            if (null != networkInterceptors)
                 this.networkInterceptors = networkInterceptors;
             return this;
         }
 
         public Builder setInterceptors(List<Interceptor> interceptors) {
-            if(null != interceptors)
+            if (null != interceptors)
                 this.interceptors = interceptors;
             return this;
         }
 
         public Builder setCacheSurvivalTime(int cacheSurvivalTime) {
-            if(cacheSurvivalTime < 0)
+            if (cacheSurvivalTime < 0)
                 throw new IllegalArgumentException("cacheSurvivalTime must be >= 0");
             this.cacheSurvivalTime = cacheSurvivalTime;
             return this;
@@ -600,15 +641,15 @@ public class OkHttpUtil {
         }
 
         public Builder setTag(Object object) {
-            if(object instanceof Activity){
+            if (object instanceof Activity) {
                 Activity activity = (Activity) object;
                 this.tag = activity.getClass();
             }
-            if(object instanceof android.support.v4.app.Fragment){
+            if (object instanceof android.support.v4.app.Fragment) {
                 android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) object;
                 this.tag = fragment.getActivity().getClass();
             }
-            if(object instanceof android.app.Fragment){
+            if (object instanceof android.app.Fragment) {
                 android.app.Fragment fragment = (android.app.Fragment) object;
                 this.tag = fragment.getActivity().getClass();
             }
@@ -618,11 +659,12 @@ public class OkHttpUtil {
 
     /**
      * 打印日志
+     *
      * @param msg 日志信息
      */
-    private void showLog(String msg){
-        if(this.showHttpLog)
-            Log.d(TAG+"["+timeStamp+"]", msg);
+    private void showLog(String msg) {
+        if (this.showHttpLog)
+            Log.d(TAG + "[" + timeStamp + "]", msg);
     }
 
 
