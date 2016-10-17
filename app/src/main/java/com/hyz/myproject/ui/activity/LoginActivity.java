@@ -55,7 +55,7 @@ public class LoginActivity extends BaseActivity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.login_page);
-        ButterKnife.bind(this);
+
 
         initView();
 

@@ -1,9 +1,12 @@
 package com.hyz.myproject.ui.base;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,6 +15,8 @@ import android.widget.Toast;
 import com.hyz.myproject.ActivityManager;
 import com.hyz.myproject.R;
 import com.hyz.myproject.dialog.LoadingDialog;
+
+import butterknife.ButterKnife;
 
 /**
  * Created by ${hyz} on 2016/7/28.
@@ -27,10 +32,17 @@ public class BaseActivity extends AppCompatActivity {
         ActivityManager.getActivityManager().pushActivity(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
 
-//        ButterKnife.bind(this);
+
 
         mCurrentActivity = this;
     }
+
+    @Override
+    public void setContentView(@LayoutRes int layoutResID) {
+        super.setContentView(layoutResID);
+        ButterKnife.bind(this);
+    }
+
 
     /**
      * 初始化标题，必须在setContentView后调用
